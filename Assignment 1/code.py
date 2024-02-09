@@ -39,7 +39,7 @@ def valueOptionMatrix(tree , T, r, K, vol):
 
     for c in np.arange(columns):
         S = tree[rows - 1, c] 
-        tree[rows - 1, c] = np.max(0.,  S - K)
+        tree[rows - 1, c] = np.maximum(0.,  S - K)
 
 
     #For all other rows, we need to combine from previous rows
