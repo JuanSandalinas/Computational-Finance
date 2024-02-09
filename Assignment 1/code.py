@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def buildTree(S,vol,T,N):
     dt = T/N
@@ -46,6 +47,8 @@ def valueOptionMatrix(tree , T, r, K, vol):
             up= tree[ i + 1, j + 1]
             tree[i , j ] = np.exp(-r*dt)*(p*up + (1-p)*down)
     return tree
+
+
 
 # Executing code
 sigma = 0.1
