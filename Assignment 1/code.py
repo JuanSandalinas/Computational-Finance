@@ -43,3 +43,13 @@ def valueOptionMatrix(tree,T,r,K,vol) :
       up = tree[i+1,j+1]
       tree[i,j] = 0 # TODO
   return tree
+
+# Executing code
+sigma = 0.1
+S = 80
+T = 1.
+N = 2
+K = 85
+r = 0.1
+tree = buildTree(S,sigma,T, N)
+valueOptionMatrix(tree,T,r,K,sigma)
