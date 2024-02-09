@@ -53,3 +53,16 @@ K = 85
 r = 0.1
 tree = buildTree(S,sigma,T, N)
 valueOptionMatrix(tree,T,r,K,sigma)
+
+# Plotting
+# Play around with different ranges of N and stepsizes.
+N = np.arange(1,300)
+# Calculatetheoptionpriceforthecorrectparameters
+optionPriceAnalytical = 0 # TODO
+#calculateoptionpricefor each n in N
+for n in N:
+    treeN = buildTree( . . . ) # TODO
+    priceApproximatedly = valueOption( . . . ) # TODO
+    
+# usematplotlibtoplottheanalyticalvalue
+# and t h e approximated v a l u e f o r each n
