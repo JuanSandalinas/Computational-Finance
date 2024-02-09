@@ -22,27 +22,30 @@ T = 1.
 N = 2
 buildTree(S,sigma,T,N)
 
+def valueOptionMatrix(tree , T, r, K, vol):
+    dt =T/N
+    u= np.exp(vol*np.sqrt(dt))
+    d= np.exp(-vol*np.sqrt(dt))
+    p= (np.exp(r*dt) - d)/(u-d)    columns = tree.shape[1]
+    rows = tree.shape[0]
 
-def valueOptionMatrix(tree,T,r,K,vol) :
-  dt = T/N
-  u = 0 # TODO
-  d = 0 # TODO
-  p = 0 # TODO
-  columns = tree.shape[1]
-  rows = tree.shape[0]
-  # Walk backward , we start in last row of the matrix
-  # Add the payoff function in the last row
-  for c in np.arange(columns):
-    S = tree[rows − 1,c] #value in the matrix
-    tree[rows − 1, c] = 0 # TODO
-  # For all other rows, we need to combine from previous rows
-  # We walk backwards, from the last row to the first row
-  for i in np.arange(rows−1)[::−1]:
-    for j in np.arange(i+1):
-      down = tree[i+1,j]
-      up = tree[i+1,j+1]
-      tree[i,j] = 0 # TODO
-  return tree
+    #Walk backward, we start in last row of the matrix
+    #Add the payoff function in the last row
+
+    for c in np.arange(columns):
+        S = tree[rows - 1, c] 
+        tree[rows - 1, c] = np.max(0,  S - K)
+
+
+    #For all other rows, we need to combine from previous rows
+    #We walk backwards, from the last row to the first row
+
+    for i in np.arange(rows - 1)[:: -1]:
+        for j in np.arange(i + 1):
+            down= tree[ i + 1, j ]
+            up= tree[ i + 1, j + 1]
+            tree[i , j ] = np.exp(-r*dt)*(p*up + (1-p)*down)
+    return tree
 
 # Executing code
 sigma = 0.1
