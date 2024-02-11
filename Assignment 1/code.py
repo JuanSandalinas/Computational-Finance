@@ -15,7 +15,7 @@ def buildTree(S,vol,T,N):
         # Hint : express each cell as a combination of up
         # and down moves
             matrix[i,j] = S*(u**(i-j))*(d**j)
-
+    print(matrix)
     return matrix
 
 # Executing buildTree function

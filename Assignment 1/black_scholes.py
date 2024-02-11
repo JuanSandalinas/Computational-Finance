@@ -1,53 +1,146 @@
+"""
+Still working on the code, not sure if algorithms are right, monday I will do some proof tests
+Expectation function algorithm need to recheck
+"""
+
+
 import numpy as np 
 import matplotlib.pyplot as plt
-def black_scholes_exact(S,r,vol, T,N):
-    ## We are using expected values
-    
-    values = np.zeros(N+1)
-    dt = T/N
-    S_t = S
-    for m in range(N):
-        Z_m = np.random.normal(0,1,1)
-        values[m] = S_t*np.exp((r-(1/2)*vol**2)*dt + vol*np.sqrt(dt)*(Z_m))
-        S_t = values[m]
-    return values
+from scipy.stats import norm
+
+class Black_scholes():
+    """
+    Black_scholes model class.
+    Inputs:
+        -   S = stock price
+        -   r = risk-free interest rate
+        -   vol = volatility % in decimals
+        -   T = Time period
+        -   N = Number of steps/intervals
+        -   auto = Compute euler and exact method, True as default
+    """
+
+    def __init__(self, S,r,vol, T,N, auto = True):
+
+        self.S = S
+        self.r = r
+        self.vol = vol
+        self.T = T
+        self.N = N
+        self.dt = T/N
+
+        if auto == True:
+            self.black_scholes_euler()
+            self.black_scholes_exact()
 
 
-def black_scholes_euler(S,r,vol,T,N):
+    def black_scholes_exact(self):
+        """
+        Stocks price of each interval N in period T 
+        using the exact solution of Black scholes
+        """
+        ex_St= np.zeros(self.N+1)
+        ex_St[0] = self.S
 
-    values = np.zero(N+1)
-    dt = T/N
-    S_t = S
-    for m in range(N):
-        Z_m = np.random.normal(0,1,1)
-        values[m] = S_t + r+S_t*dt + vol*S_t*np.sqrt(dt)*Z_m
-        S_t = values[m]
-    
-def buildTree(S,vol,T,N):
-    dt = T/N
-    matrix = np.zeros((N+1,N+1))
-    
-    u= np.exp(vol*np.sqrt(dt))
-    d= np.exp(-vol*np.sqrt(dt))
-    matrix[0,0] = S
-    
-    # Iterate over the lower triangle
-    for i in np.arange (N + 1) : # i t e r a t e o ve r rows
-        print(f" i is:{i}")
-        for j in np.arange (i + 1) : # i t e r a t e o ve r columns
-    
-        # Hint : express each cell as a combination of up
-        # and down moves
-            print(f" j is:{j}")
+        #### Begin Pre-computations
+        pre_1 = (self.r-(1/2)*self.vol**2)*self.dt
+        pre_2 = self.vol*np.sqrt(self.dt)
+        ###### End Pre-computations
 
-    return matrix
+        for m in range(1,self.N+1):
+            Z_m = np.random.normal(0,1,1)
+            ex_St[m] = ex_St[m-1]*np.exp(pre_1 + pre_2*(Z_m))
+            S_t = ex_St[m]
+        
+        self.ex_St = ex_St
 
+
+    def black_scholes_euler(self):
+        """
+        Stocks price of each interval N in period T 
+        using the euler approximation solution of Black scholes
+        """
+
+        eu_St = np.zeros(self.N+1)
+        eu_St[0] = self.S
+
+        #### Begin Pre-computations        
+        pre_1 = self.r*self.dt
+        pre_2 = self.vol*np.sqrt(self.dt)
+        ###### End Pre-computations
+
+        for m in range(1,self.N+1):
+            Z_m = np.random.normal(0,1,1)
+            eu_St[m] = eu_St[m-1] + eu_St[m-1]*pre_1+ S_t*pre_2*Z_m
+        
+        self.eu_St = eu_St
+            
+    def black_scholes_expectation(self,K, mode = "exact"):
+        """
+        Expected value of an European price call option written on an asset in the Black-scholes model
     
+        Inputs:
+            - K = Strike price
+            - mode = If we want to use the exact or euler method for St
+        """
+
+        self.K = K
+
+        if mode == "euler":
+            if hasattr(self,'eu_St'):
+                self.expectation(mode)
+            else:
+                self.black_scholes_euler()
+                self.expectation(mode)
+
+        elif mode == "exact":
+            if hasattr(self, 'ex_St'):
+                self.expectation(mode)
+                
+            else:
+                self.black_scholes_exact()
+                self.expectation(mode)
+
+    def expectation(self,mode):
+        """
+        Computes the expected price fo european call option
+        """
+
+        if mode == "euler":
+            St_val = self.eu_St
+        elif mode == "exact":
+            St_val = self.ex_St
+        
+        Vt = np.zeros(self.N+1)
+
+        ####### Begin Pre-computations
+
+        den_d1 = self.vol*np.sqrt(self.r)
+        pre_num_d1 = (self.r+ (self.vol**2)/2)*self.dt
+        pre_d2 = self.vol*np.sqrt(self.dt)
+        pre_Vt = np.exp(-self.r*self.dt)*self.K
+
+        ###### End Pre-computations
+
+        if mode == "euler":
+            St_val = self.eu_St
+        elif mode == "exact":
+            St_val = self.ex_St
+        
+        
+        for m,St in enumerate(St_val):
+
+            d1 = (np.log(St/self.K) +  pre_num_d1)/den_d1
+            d2 = d1 - pre_d2
+            Vt[m] = St*norm.cdf(d1) - pre_Vt*norm.cdf(d2)
+        
+        
+        if mode == "euler":
+            self.eu_Vt = Vt
+        elif mode == "exact":
+            self.ex_Vt = Vt
+
+
 if __name__ == "__main__":
-    S = 100
-    r = 0.06
-    K = 99
-    N = 3
-    vol = 0.2
-    T = 1
-    buildTree(S,vol,T,N)
+    a = Black_scholes(100,0.015,0.2,20,2)
+    
