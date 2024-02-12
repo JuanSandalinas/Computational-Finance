@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def buildTree(S,vol,T,N):
     dt = T/N
     matrix = np.zeros((N+1,N+1))
@@ -14,7 +15,7 @@ def buildTree(S,vol,T,N):
         for j in np.arange(i+1) : # i t e r a t e o ve r columns
         # Hint : express each cell as a combination of up
         # and down moves
-            matrix[i,j] = S*(u**(i-j))*(d**j)
+            matrix[i,j] = S*(u**(j))*(d**(i-j))
     print(matrix)
     return matrix
 
@@ -23,8 +24,8 @@ sigma = 0.1
 S = 80
 T = 1.
 N = 2
-buildTree(S,sigma,T,N)
-
+tree = buildTree(S,sigma,T,N)
+print("aaa")
 
 def valueOptionMatrix(tree , T, r, K, vol):
     dt =T/N
@@ -59,7 +60,7 @@ def valueOptionMatrix(tree , T, r, K, vol):
 sigma = 0.1
 S = 80
 T = 1.
-N = 5
+N = 2
 K = 85
 r = 0.1
 tree = buildTree(S,sigma,T, N)

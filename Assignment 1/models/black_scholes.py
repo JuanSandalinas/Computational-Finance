@@ -17,10 +17,11 @@ class Black_scholes():
         -   vol = volatility % in decimals
         -   T = Time period
         -   N = Number of steps/intervals
+        -   K = Strike price
         -   auto = Compute euler and exact method, True as default
     """
 
-    def __init__(self, S,r,vol, T,N, auto = True):
+    def __init__(self, S,r,vol, T,N, K,auto = True):
 
         self.S = S
         self.r = r
@@ -32,6 +33,8 @@ class Black_scholes():
         if auto == True:
             self.black_scholes_euler()
             self.black_scholes_exact()
+            self.black_scholes_expectation(K,mode = "euler")
+            self.black_scholes_expectation(K,mode = "exact")
 
 
     def black_scholes_exact(self):
@@ -71,7 +74,7 @@ class Black_scholes():
 
         for m in range(1,self.N+1):
             Z_m = np.random.normal(0,1,1)
-            eu_St[m] = eu_St[m-1] + eu_St[m-1]*pre_1+ S_t*pre_2*Z_m
+            eu_St[m] = eu_St[m-1] + eu_St[m-1]*pre_1+ eu_St[m-1]*pre_2*Z_m
         
         self.eu_St = eu_St
             
@@ -88,29 +91,25 @@ class Black_scholes():
 
         if mode == "euler":
             if hasattr(self,'eu_St'):
-                self.expectation(mode)
+                self.eu_Vt = self.expectation(self.eu_St)
             else:
                 self.black_scholes_euler()
-                self.expectation(mode)
+                self.eu_Vt = self.expectation(self.eu_St)
 
         elif mode == "exact":
             if hasattr(self, 'ex_St'):
-                self.expectation(mode)
+                self.ex_Vt = self.expectation(self.ex_St)
                 
             else:
                 self.black_scholes_exact()
-                self.expectation(mode)
+                self.ex_Vt = self.expectation(self.ex_St)
+     
 
-    def expectation(self,mode):
+    def expectation(self,St_val):
         """
         Computes the expected price fo european call option
         """
 
-        if mode == "euler":
-            St_val = self.eu_St
-        elif mode == "exact":
-            St_val = self.ex_St
-        
         Vt = np.zeros(self.N+1)
 
         ####### Begin Pre-computations
@@ -121,12 +120,6 @@ class Black_scholes():
         pre_Vt = np.exp(-self.r*self.dt)*self.K
 
         ###### End Pre-computations
-
-        if mode == "euler":
-            St_val = self.eu_St
-        elif mode == "exact":
-            St_val = self.ex_St
-        
         
         for m,St in enumerate(St_val):
 
@@ -134,13 +127,10 @@ class Black_scholes():
             d2 = d1 - pre_d2
             Vt[m] = St*norm.cdf(d1) - pre_Vt*norm.cdf(d2)
         
-        
-        if mode == "euler":
-            self.eu_Vt = Vt
-        elif mode == "exact":
-            self.ex_Vt = Vt
+        return Vt
 
 
 if __name__ == "__main__":
-    a = Black_scholes(100,0.015,0.2,20,2)
+    a = Black_scholes(100,0.06,0.2,1,50,99)
     
+
