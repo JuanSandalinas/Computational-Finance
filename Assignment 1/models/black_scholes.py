@@ -1,6 +1,5 @@
 """
-Still working on the code, not sure if algorithms are right, monday I will do some proof tests
-Expectation function algorithm need to recheck
+Black scholes model
 """
 
 

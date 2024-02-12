@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 class Binary_Tree():
     """
-    Binary_tree class:
+    Binary_tree class.
     Inputs:
         -   S = stock price
         -   r = risk-free interest rate
