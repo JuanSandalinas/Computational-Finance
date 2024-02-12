@@ -119,13 +119,15 @@ class Black_scholes():
         pre_Vt = np.exp(-self.r*self.dt)*self.K
 
         ###### End Pre-computations
-        
+
+
         for m,St in enumerate(St_val):
 
             d1 = (np.log(St/self.K) +  pre_num_d1)/den_d1
             d2 = d1 - pre_d2
             Vt[m] = St*norm.cdf(d1) - pre_Vt*norm.cdf(d2)
         
+        self.delta = norm.cdf((np.log(self.S/self.K) +  pre_num_d1)/den_d1)
         return Vt
 
 

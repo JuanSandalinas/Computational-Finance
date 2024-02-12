@@ -72,6 +72,10 @@ class Binary_Tree():
                 v_tree[i , j ] = np.exp(-self.r*self.dt)*(p*up + (1-p)*down)
        
         self.v_tree = v_tree
+        self.delta = (v_tree[1,1] - v_tree[1,0])/(self.S*u - self.S*d)
+
+
+
         
 
 
