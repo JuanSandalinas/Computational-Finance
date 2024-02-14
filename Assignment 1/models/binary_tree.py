@@ -85,7 +85,7 @@ if __name__ == "__main__":
     sigma = 0.1
     S = 80
     T = 1.
-    N = 2
+    N = 100
     r = 0.1
     K = 85
     binary = Binary_Tree(S,r,sigma,T,N,K)
