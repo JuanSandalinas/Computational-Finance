@@ -29,6 +29,7 @@ class Black_scholes():
         self.N = N
         self.dt = T/N
         self.K = K
+        self.taos = self.T - np.arange(0,self.N+1)*self.dt
 
         self.delta = None
         self.deltas = None
@@ -37,6 +38,7 @@ class Black_scholes():
         if auto == True:
             self.option_values(mode = "euler")
             self.option_values(mode = "exact")
+            self.euler_hedging()
 
 
     def exact_method(self):
@@ -77,8 +79,6 @@ class Black_scholes():
         for m in range(1,self.N+1):
             Z_m = np.random.normal(0,1,1)
             eu_St[m] = eu_St[m-1] + eu_St[m-1]*pre_1+ eu_St[m-1]*pre_2*Z_m
-
-
         self.eu_St = eu_St
     
     def euler_hedging(self, vol_hedge = None, do_cash = False):
@@ -95,42 +95,31 @@ class Black_scholes():
             vol_hedge = self.vol
         
         ## Delta parameters
-        d1_function = np.vectorize(lambda m,x: (np.log(x/self.K) +  (self.r + 0.5*(vol_hedge**2))*(self.T-m*self.dt))/(vol_hedge*np.sqrt(self.T-m*self.dt)))
-        d1s = d1_function(*zip(*enumerate(self.eu_St)))
+        d1s = (np.log(self.eu_St/self.K) + (self.r + 0.5*(vol_hedge**2)*self.taos))/(self.vol*np.sqrt(self.taos))
         self.deltas = norm.cdf(d1s)
-    
+
         ## Cash and initial call price
         if do_cash == True:
-            f = self.eu_St[0]*self.deltas[0] - np.exp(-self.r*self.T)*self.K*norm.cdf(d1s[0] -vol_hedge*np.sqrt(self.T))
-            self.cash = np.zeros(self.N + 1)
-            self.cash[0] = f - self.deltas[0]*self.eu_St[0]
+            self.cash_hedging(vol_hedge)
 
-            ### Hedging adjustment, need to be vectorized
-            for m in range(1,self.eu_St.shape[0]-1):
-                cash_t = self.cash*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
-                self.cash[m] = self.cash[m-1]*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
-            
-            #### Selling the stock at strike price at maturity
-            self.cash[-1] = self.cash[-2]*np.exp(self.r*self.dt) + int(self.eu_St[-1] - self.K >0)*(self.K - (1-self.deltas[-2])*self.eu_St[-1])
 
-    
-    def option_price(self,m,St, vol_hedge = None):
+
+    def cash_hedging(self,vol_hedge):
         """
-        Computes the expected price at time t of an european call option
-        Inputs:
-            - m: Position
-            - St: Stock value
+        Simulates a how does tha account balance of an investor changes.
+        Need to change to vectorized way if is necessary
         """
-        if vol_hedge == None:
-            vol_hedge = self.vol
-    
-        tao = self.T - m*self.dt
-        d1 = (np.log(St/self.K) +  (self.r + 0.5*(vol_hedge**2))*(tao))/(vol_hedge*np.sqrt(tao))
-        d2 = d1 - vol_hedge*np.sqrt(tao)
-        Vt = St*norm.cdf(d1) - np.exp(-self.r*tao)*self.K*norm.cdf(d2)
+        f = self.eu_St[0]*self.deltas[0] - np.exp(-self.r*self.T)*self.K*norm.cdf(d1s[0] -vol_hedge*np.sqrt(self.T))
+        self.cash = np.zeros(self.N + 1)
+        self.cash[0] = f - self.deltas[0]*self.eu_St[0]
 
-        return Vt
-
+        ### Hedging adjustment, need to be vectorized
+        for m in range(1,self.eu_St.shape[0]-1):
+            cash_t = self.cash*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
+            self.cash[m] = self.cash[m-1]*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
+        
+        #### Selling the stock at strike price at maturity
+        self.cash[-1] = self.cash[-2]*np.exp(self.r*self.dt) + int(self.eu_St[-1] - self.K >0)*(self.K - (1-self.deltas[-2])*self.eu_St[-1])
 
     def option_values(self,mode = "exact"):
         """
@@ -138,24 +127,44 @@ class Black_scholes():
         And hedge parameter
     
         Inputs:
-            - mode = If we want to use the exact or euler method for stock price
+            - mode = If use the exact or euler method of stock price
         """
-      
-        option_prices = np.vectorize(self.option_price)
         
         if mode == "euler":
             if not hasattr(self,'eu_St'):
                 self.euler_method()
-            self.eu_Vt = option_prices(*zip(*enumerate(self.eu_St)))
+            self.eu_Vt = self.option_price(mode)
 
         elif mode == "exact":
-            if not hasattr(self, 'ex_St'):
+            if not hasattr(self, mode):
                 self.exact_method()
 
-            self.ex_Vt = option_prices(*zip(*enumerate(self.ex_St)))
+            self.ex_Vt = self.option_price(mode)
 
             ## Hedge parameter for part II question 4
             self.delta = norm.cdf((np.log(self.ex_St[0]/self.K) +  (self.r + 0.5*(self.vol**2))*(self.T))/(self.vol*np.sqrt(self.T)))
+
+    
+    def option_price(self,mode, vol_hedge = None):
+        """
+        Computes the expected price at time t of an european call option
+        Inputs:
+            - m: Position in time
+            - St: Stock value
+            . vol_hedge: Volatility of hedge, set as stock volatility as default
+        """
+        if mode == "exact":
+            St = self.ex_St
+        if mode == "euler":
+            St = self.eu_St
+        if vol_hedge == None:
+            vol_hedge = self.vol
+
+        d1s = (np.log(St/self.K) + (self.r + 0.5*(vol_hedge**2)*self.taos))/(self.vol*np.sqrt(self.taos))
+        d2s = d1s - vol_hedge*np.sqrt(self.taos)
+        Vt = St*norm.cdf(d1s) - np.exp(-self.r*self.taos)*self.K*norm.cdf(d2s)
+
+        return Vt
      
 
 
@@ -163,12 +172,10 @@ if __name__ == "__main__":
     vol = 0.2
     S = 100
     T = 1.
-    N = 50
+    N = 365
     r = 0.06
     K = 99
     black_scholes = Black_scholes(S,r,vol,T,N,K, auto = True)
-    black_scholes.euler_hedging()
-    plt.plot(black_scholes.deltas)
-    plt.show()
+
 
 
