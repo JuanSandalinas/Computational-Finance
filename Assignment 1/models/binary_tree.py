@@ -54,7 +54,9 @@ class Binary_Tree():
         
 
         u= np.exp(self.vol*np.sqrt(self.dt))
+
         d= np.exp(-self.vol*np.sqrt(self.dt))
+
         p= (np.exp(self.r*self.dt) - d)/(u-d)   
 
         for c in np.arange(columns):
@@ -67,8 +69,10 @@ class Binary_Tree():
 
         for i in np.arange(rows - 1)[:: -1]:
             for j in np.arange(i + 1):
-                down= v_tree[ i + 1, j ]
-                up= v_tree[ i + 1, j + 1]
+
+                down = v_tree[ i + 1, j ]
+                up = v_tree[ i + 1, j + 1]
+
                 v_tree[i , j ] = np.exp(-self.r*self.dt)*(p*up + (1-p)*down)
        
         self.v_tree = v_tree
