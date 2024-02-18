@@ -50,16 +50,17 @@ class Binary_Tree():
 
         columns = self.tree.shape[1]
         rows = self.tree.shape[0]
-        v_tree = np.copy(self.tree)
-        
+        v_tree_european = np.copy(self.tree)
+        v_tree_american = np.copy(self.tree)
+
 
         u= np.exp(self.vol*np.sqrt(self.dt))
         d= np.exp(-self.vol*np.sqrt(self.dt))
         p= (np.exp(self.r*self.dt) - d)/(u-d)   
 
         for c in np.arange(columns):
-            St = v_tree[rows - 1, c] 
-            v_tree[rows - 1, c] = np.maximum(0.,  St - self.K)
+            St = v_tree_european[rows - 1, c] 
+            v_tree_european[rows - 1, c] = np.maximum(0.,  St - self.K)
 
 
         #For all other rows, we need to combine from previous rows
@@ -67,14 +68,55 @@ class Binary_Tree():
 
         for i in np.arange(rows - 1)[:: -1]:
             for j in np.arange(i + 1):
-                down= v_tree[ i + 1, j ]
-                up= v_tree[ i + 1, j + 1]
-                v_tree[i , j ] = np.exp(-self.r*self.dt)*(p*up + (1-p)*down)
+                european_down= v_tree_european[ i + 1, j ]
+                european_up= v_tree_european[ i + 1, j + 1]
+
+                american_down= v_tree_american[ i + 1, j ]
+                american_up= v_tree_american[ i + 1, j + 1]
+                
+                v_tree_european[i , j ] = np.exp(-self.r*self.dt)*(p*european_up + (1-p)*european_down)
+                
+                v_tree_american[i,j] = np.max(v_tree_european[i,j]-K, np.exp(-self.r*self.dt)*K)
        
         self.v_tree = v_tree
         self.delta = (v_tree[1,1] - v_tree[1,0])/(self.S*u - self.S*d)
 
+def valueOptionMatrixAmerican(self,K):
 
+        self.K = K
+
+        columns = self.tree.shape[1]
+        rows = self.tree.shape[0]
+        v_tree = np.copy(self.tree)
+        
+
+        u = np.exp(self.vol*np.sqrt(self.dt))
+        d = np.exp(-self.vol*np.sqrt(self.dt))
+        p = (np.exp(self.r*self.dt) - d)/(u-d)   
+
+        for c in np.arange(columns):
+            St = v_tree[rows - 1, c] 
+            v_tree[rows - 1, c] = np.maximum(0.,  St - self.K)
+
+
+        # For all other rows, we need to combine from previous rows
+        # We walk backwards, from the last row to the first row
+
+        for i in np.arange(rows - 1)[:: -1]:
+            for j in np.arange(i + 1):
+                down = v_tree[i + 1, j]
+                up = v_tree[i + 1, j + 1]
+
+                # European
+                v_tree[i, j] = np.exp(-self.r*self.dt)*(p*up + (1-p)*down)
+                european_value = v_tree[i,j]
+
+                # American
+                v_tree[i, j] = np.max(european_value-K, np.exp(-self.r*self.dt)*K)
+
+       
+        self.v_tree = v_tree
+        self.delta = (v_tree[1,1] - v_tree[1,0])/(self.S*u - self.S*d)
 
         
 
