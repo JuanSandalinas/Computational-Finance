@@ -1,3 +1,7 @@
+"""
+Binary tree model
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -5,12 +9,12 @@ class Binary_Tree():
     """
     Binary_tree class.
     Inputs:
-        -   S = stock price
-        -   r = risk-free interest rate
-        -   vol = volatility % in decimals
-        -   T = Time period
-        -   N = Number of steps/intervals
-        -   auto = Compute tree automatically, True as default
+        -   S: stock price
+        -   r: risk-free interest rate
+        -   vol: volatility % in decimals
+        -   T: Time period
+        -   N: Number of steps/intervals
+        -   auto: Compute tree automatically, True as default
     """
 
     def __init__(self,S,r,vol,T,N, K,auto = True):
@@ -55,7 +59,9 @@ class Binary_Tree():
 
 
         u= np.exp(self.vol*np.sqrt(self.dt))
+
         d= np.exp(-self.vol*np.sqrt(self.dt))
+
         p= (np.exp(self.r*self.dt) - d)/(u-d)   
 
         for c in np.arange(columns):
@@ -127,7 +133,7 @@ if __name__ == "__main__":
     sigma = 0.1
     S = 80
     T = 1.
-    N = 2
+    N = 100
     r = 0.1
     K = 85
     binary = Binary_Tree(S,r,sigma,T,N,K)
