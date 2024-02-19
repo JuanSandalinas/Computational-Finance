@@ -86,7 +86,8 @@ class Black_scholes():
         Hedging simulation of each interval N in period T 
         using the euler approximation solution of Black scholes
         Inputs:
-            - vol_hedge: Volatility for hedge parameter computations, set as = stock volatility as default
+            - vol_hedge: Volatility for hedge parameter computations, stock volatility as default
+            - do_cash: True if simulate short position of option call, False as default.
         """
 
         if not hasattr(self,'eu_St'):
@@ -106,7 +107,7 @@ class Black_scholes():
 
     def cash_hedging(self,vol_hedge):
         """
-        Simulates a how does tha account balance of an investor changes.
+        Simulates a how does the account balance of an investor changes.
         Need to change to vectorized way if is necessary
         """
         f = self.eu_St[0]*self.deltas[0] - np.exp(-self.r*self.T)*self.K*norm.cdf(d1s[0] -vol_hedge*np.sqrt(self.T))
