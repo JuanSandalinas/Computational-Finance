@@ -2,7 +2,6 @@
 Black scholes model
 """
 
-
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.stats import norm
@@ -116,7 +115,6 @@ class Black_scholes():
 
         ### Hedging adjustment, need to be vectorized
         for m in range(1,self.eu_St.shape[0]-1):
-            cash_t = self.cash*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
             self.cash[m] = self.cash[m-1]*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
         
         #### Selling the stock at strike price at maturity

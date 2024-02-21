@@ -65,8 +65,9 @@ class Binary_Tree():
         p= (np.exp(self.r*self.dt) - d)/(u-d)   
 
         for c in np.arange(columns):
-            St = v_tree_european[rows - 1, c] 
+            St = self.tree[rows - 1, c] 
             v_tree_european[rows - 1, c] = np.maximum(0.,  St - self.K)
+            v_tree_american[rows -1,c] = np.maximum(0., St-self.K)
 
 
         #For all other rows, we need to combine from previous rows
@@ -82,47 +83,11 @@ class Binary_Tree():
                 
                 v_tree_european[i , j ] = np.exp(-self.r*self.dt)*(p*european_up + (1-p)*european_down)
                 
-                v_tree_american[i,j] = np.max(v_tree_european[i,j]-K, np.exp(-self.r*self.dt)*K)
+                v_tree_american[i,j] = np.maximum(np.exp(-self.r*self.dt)*(p*american_up + (1-p)*american_down), self.tree[i,j]-K)
        
-        self.v_tree = v_tree
-        self.delta = (v_tree[1,1] - v_tree[1,0])/(self.S*u - self.S*d)
-
-def valueOptionMatrixAmerican(self,K):
-
-        self.K = K
-
-        columns = self.tree.shape[1]
-        rows = self.tree.shape[0]
-        v_tree = np.copy(self.tree)
-        
-
-        u = np.exp(self.vol*np.sqrt(self.dt))
-        d = np.exp(-self.vol*np.sqrt(self.dt))
-        p = (np.exp(self.r*self.dt) - d)/(u-d)   
-
-        for c in np.arange(columns):
-            St = v_tree[rows - 1, c] 
-            v_tree[rows - 1, c] = np.maximum(0.,  St - self.K)
-
-
-        # For all other rows, we need to combine from previous rows
-        # We walk backwards, from the last row to the first row
-
-        for i in np.arange(rows - 1)[:: -1]:
-            for j in np.arange(i + 1):
-                down = v_tree[i + 1, j]
-                up = v_tree[i + 1, j + 1]
-
-                # European
-                v_tree[i, j] = np.exp(-self.r*self.dt)*(p*up + (1-p)*down)
-                european_value = v_tree[i,j]
-
-                # American
-                v_tree[i, j] = np.max(european_value-K, np.exp(-self.r*self.dt)*K)
-
-       
-        self.v_tree = v_tree
-        self.delta = (v_tree[1,1] - v_tree[1,0])/(self.S*u - self.S*d)
+        self.v_tree_european = v_tree_european
+        self.v_tree_american = v_tree_american
+        self.delta = (v_tree_european[1,1] - v_tree_european[1,0])/(self.S*u - self.S*d)
 
         
 
@@ -133,9 +98,8 @@ if __name__ == "__main__":
     sigma = 0.1
     S = 80
     T = 1.
-    N = 100
+    N = 10
     r = 0.1
     K = 85
     binary = Binary_Tree(S,r,sigma,T,N,K)
-    print(binary.tree)
-    print(binary.v_tree)
+    print(binary.v_tree_american-binary.v_tree_european)
