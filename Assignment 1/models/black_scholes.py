@@ -100,25 +100,37 @@ class Black_scholes():
 
         ## Cash and initial call price
         if do_cash == True:
-            self.cash_hedging(vol_hedge)
+            self.cash_hedging(vol_hedge,d1s)
 
 
 
-    def cash_hedging(self,vol_hedge):
+    def cash_hedging(self,vol_hedge,d1s):
         """
         Simulates a how does the account balance of an investor changes.
         Need to change to vectorized way if is necessary
         """
         f = self.eu_St[0]*self.deltas[0] - np.exp(-self.r*self.T)*self.K*norm.cdf(d1s[0] -vol_hedge*np.sqrt(self.T))
-        self.cash = np.zeros(self.N + 1)
-        self.cash[0] = f - self.deltas[0]*self.eu_St[0]
+        
+        self.cash_weekly = np.zeros(int((self.N +1)/7))
+        self.cash_weekly[0] = f - self.deltas[0]*self.eu_St[0]
+        
+        self.cash_daily= np.zeros(int(self.N+1))
+        self.cash_daily[0] = f - self.deltas[0]*self.eu_St[0]
 
         ### Hedging adjustment, need to be vectorized
         for m in range(1,self.eu_St.shape[0]-1):
-            self.cash[m] = self.cash[m-1]*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
-        
+            self.cash_daily[m] = self.cash_daily[m-1]*np.exp(self.r*self.dt) - (self.deltas[m]-self.deltas[m-1])*self.eu_St[m]
+
+        for m in range(1,51):
+            self.cash_weekly[m] = self.cash_weekly[(m-1)]*np.exp(self.r*self.dt) - (self.deltas[m*7]-self.deltas[(m-1)*7])*self.eu_St[m*7]
         #### Selling the stock at strike price at maturity
-        self.cash[-1] = self.cash[-2]*np.exp(self.r*self.dt) + int(self.eu_St[-1] - self.K >0)*(self.K - (1-self.deltas[-2])*self.eu_St[-1])
+        if (self.eu_St[-1] - self.K) >0:
+            self.cash_weekly[-1] = self.cash_weekly[-2]*np.exp(self.r*self.dt) + self.K - (1-self.deltas[-2])*self.eu_St[-1]
+            self.cash_daily[-1] = self.cash_daily[-2]*np.exp(self.r*self.dt) + self.K - (1-self.deltas[-2])*self.eu_St[-1]
+        else:
+            self.cash_weekly[-1] = self.cash_weekly[-2]*np.exp(self.r*self.dt) + (self.deltas[-2])*self.eu_St[-1]
+            self.cash_daily[-1] = self.cash_daily[-2]*np.exp(self.r*self.dt) + (self.deltas[-2])*self.eu_St[-1]
+
 
     def option_values(self,mode = "exact"):
         """
@@ -171,10 +183,23 @@ if __name__ == "__main__":
     vol = 0.2
     S = 100
     T = 1.
-    N = 365
+    N = 364
     r = 0.06
     K = 99
-    black_scholes = Black_scholes(S,r,vol,T,N,K, auto = True)
+    black_scholes_d = Black_scholes(S,r,vol,T,N,K, auto = True)
+    black_scholes_d.euler_hedging(do_cash = True)
+    fig,axs = plt.subplots(2)
 
+    axs[0].plot(np.linspace(1,365, num = 365),black_scholes_d.eu_St, label = "Stock price")
+    axs[0].set_xlabel("Time")
+    axs[0].set_ylabel("Stock price")
+    axs[0].legend()
+
+    axs[1].plot(np.linspace(1,365, num = 52),black_scholes_d.cash_weekly, label = "Weekly adjustment")
+    axs[1].plot(np.linspace(1,365, num = 365),black_scholes_d.cash_daily, label = "Daily adjustment")
+    axs[1].set_xlabel("Time")
+    axs[1].set_ylabel("Portfolio value")
+    axs[1].legend()
+    plt.show()
 
 

@@ -83,7 +83,7 @@ class Binary_Tree():
                 
                 v_tree_european[i , j ] = np.exp(-self.r*self.dt)*(p*european_up + (1-p)*european_down)
                 
-                v_tree_american[i,j] = np.maximum(np.exp(-self.r*self.dt)*(p*american_up + (1-p)*american_down), self.tree[i,j]-K)
+                v_tree_american[i,j] = np.maximum(np.exp(-self.r*self.dt)*(p*american_up + (1-p)*american_down), self.tree[i,j]-self.K)
        
         self.v_tree_european = v_tree_european
         self.v_tree_american = v_tree_american
@@ -95,11 +95,24 @@ class Binary_Tree():
 if __name__ == "__main__":
 
     # Executing buildTree function
-    sigma = 0.1
-    S = 80
+    sigma = 0.2
+    S = 100
     T = 1.
-    N = 10
-    r = 0.1
-    K = 85
-    binary = Binary_Tree(S,r,sigma,T,N,K)
-    print(binary.v_tree_american-binary.v_tree_european)
+    N = 50
+    r = 0.06
+    K = 50
+    v_binary_trees_am = []
+    v_binary_trees_eu = []
+    vols = np.linspace(0,1,num = 50)
+    for vol in vols:
+        b = Binary_Tree(S,r,vol,T,N,K)
+        v_binary_trees_am += [b.v_tree_european[0][0]]
+        v_binary_trees_eu += [b.v_tree_american[0][0]]
+
+    plt.plot(vols,v_binary_trees_am, label = "American Option")
+    plt.plot(vols, v_binary_trees_eu, label = "European Option")
+    plt.legend()
+    plt.xlabel("Volatility")
+    plt.ylabel("Call value option price")
+    plt.show()
+ 
