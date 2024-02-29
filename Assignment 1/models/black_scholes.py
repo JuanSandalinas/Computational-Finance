@@ -95,7 +95,7 @@ class Black_scholes():
             vol_hedge = self.vol
         
         ## Delta parameters
-        d1s = (np.log(self.eu_St/self.K) + (self.r + 0.5*(vol_hedge**2)*self.taos))/(self.vol*np.sqrt(self.taos))
+        d1s = (np.log(self.eu_St/self.K) + (self.r + 0.5*(vol_hedge**2)*self.taos))/(vol_hedge*np.sqrt(self.taos))
         self.deltas = norm.cdf(d1s)
 
         ## Cash and initial call price

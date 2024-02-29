@@ -56,6 +56,7 @@ class Binary_Tree():
         rows = self.tree.shape[0]
         v_tree_european = np.copy(self.tree)
         v_tree_american = np.copy(self.tree)
+        v_tree_american_put = np.copy(self.tree)
 
 
         u= np.exp(self.vol*np.sqrt(self.dt))
@@ -66,12 +67,9 @@ class Binary_Tree():
 
         for c in np.arange(columns):
             St = self.tree[rows - 1, c] 
-            v_tree_european[rows - 1, c] = np.maximum(0.,  St - self.K)
-            v_tree_american[rows -1,c] = np.maximum(0., St-self.K)
-
-
-        #For all other rows, we need to combine from previous rows
-        #We walk backwards, from the last row to the first row
+            v_tree_european[rows - 1, c] = max(0.,  St - self.K)
+            v_tree_american[rows -1,c] = max(0., St-self.K)
+            v_tree_american_put[rows -1,c] = max(0., self.K - St)
 
         for i in np.arange(rows - 1)[:: -1]:
             for j in np.arange(i + 1):
@@ -80,13 +78,20 @@ class Binary_Tree():
 
                 american_down= v_tree_american[ i + 1, j ]
                 american_up= v_tree_american[ i + 1, j + 1]
+
+                american_down_put = v_tree_american_put[i + 1, j ]
+                american_up_put = v_tree_american_put[i + 1, j ]
+
                 
                 v_tree_european[i , j ] = np.exp(-self.r*self.dt)*(p*european_up + (1-p)*european_down)
                 
-                v_tree_american[i,j] = np.maximum(np.exp(-self.r*self.dt)*(p*american_up + (1-p)*american_down), self.tree[i,j]-self.K)
+                v_tree_american[i,j] = max(np.exp(-self.r*self.dt)*(p*american_up + (1-p)*american_down), self.tree[i,j]-self.K)
+
+                v_tree_american_put[i,j] = max(np.exp(-self.r*self.dt)*(p*american_up_put + (1-p)*american_down_put), self.K - self.tree[i,j])
        
         self.v_tree_european = v_tree_european
         self.v_tree_american = v_tree_american
+        self.v_tree_american_put = v_tree_american_put
         self.delta = (v_tree_european[1,1] - v_tree_european[1,0])/(self.S*u - self.S*d)
 
         
@@ -100,19 +105,20 @@ if __name__ == "__main__":
     T = 1.
     N = 50
     r = 0.06
-    K = 50
+    K = 99
     v_binary_trees_am = []
-    v_binary_trees_eu = []
+    v_binary_trees_am_put = []
     vols = np.linspace(0,1,num = 50)
     for vol in vols:
         b = Binary_Tree(S,r,vol,T,N,K)
-        v_binary_trees_am += [b.v_tree_european[0][0]]
-        v_binary_trees_eu += [b.v_tree_american[0][0]]
+        v_binary_trees_am_put += [b.v_tree_american_put[0][0]]
+        v_binary_trees_am += [b.v_tree_american[0][0]]
 
-    plt.plot(vols,v_binary_trees_am, label = "American Option")
-    plt.plot(vols, v_binary_trees_eu, label = "European Option")
+    plt.plot(vols,v_binary_trees_am, label = "American Call Option")
+    plt.plot(vols,v_binary_trees_am_put,label = "American Put Option")
     plt.legend()
-    plt.xlabel("Volatility")
-    plt.ylabel("Call value option price")
+    plt.yticks(np.arange(0, 110,10))
+    plt.xlabel("Stock Volatility ")
+    plt.ylabel("Option price ($)")
     plt.show()
  
