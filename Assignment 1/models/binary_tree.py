@@ -80,7 +80,7 @@ class Binary_Tree():
                 american_up= v_tree_american[ i + 1, j + 1]
 
                 american_down_put = v_tree_american_put[i + 1, j ]
-                american_up_put = v_tree_american_put[i + 1, j ]
+                american_up_put = v_tree_american_put[i + 1, j +1]
 
                 
                 v_tree_european[i , j ] = np.exp(-self.r*self.dt)*(p*european_up + (1-p)*european_down)
