@@ -67,7 +67,7 @@ class Binary_Tree():
 
         for c in np.arange(columns):
             St = self.tree[rows - 1, c] 
-            v_tree_european[rows - 1, c] = max(0.,  St - self.K)
+            v_tree_european[rows - 1, c] = max(0.,  -St + self.K)
             v_tree_american[rows -1,c] = max(0., St-self.K)
             v_tree_american_put[rows -1,c] = max(0., self.K - St)
 
@@ -100,25 +100,12 @@ class Binary_Tree():
 if __name__ == "__main__":
 
     # Executing buildTree function
-    sigma = 0.2
-    S = 100
-    T = 1.
-    N = 50
-    r = 0.06
-    K = 99
-    v_binary_trees_am = []
-    v_binary_trees_am_put = []
-    vols = np.linspace(0,1,num = 50)
-    for vol in vols:
-        b = Binary_Tree(S,r,vol,T,N,K)
-        v_binary_trees_am_put += [b.v_tree_american_put[0][0]]
-        v_binary_trees_am += [b.v_tree_american[0][0]]
-
-    plt.plot(vols,v_binary_trees_am, label = "American Call Option")
-    plt.plot(vols,v_binary_trees_am_put,label = "American Put Option")
-    plt.legend()
-    plt.yticks(np.arange(0, 110,10))
-    plt.xlabel("Stock Volatility ")
-    plt.ylabel("Option price ($)")
-    plt.show()
+    sigma = 0.19
+    S = 171.6649932861328
+    T = 0.53
+    N = 100
+    r = 0.05
+    K = 175.0
+    a = Binary_Tree(S,r,sigma,T,N,K)
+    print(a.v_tree_european[0,0])
  
